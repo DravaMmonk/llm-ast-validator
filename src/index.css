@@ -1,0 +1,17 @@
+/*
+ * Page-level sizing only.
+ *
+ * The design language — tokens, type scale, pane anatomy, button hierarchy —
+ * lives in the shared console package. Do not restyle operation-panel leaves
+ * here and do not introduce a second token or status-color table (Section 6.1).
+ */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}

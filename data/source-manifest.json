@@ -1,0 +1,146 @@
+{
+  "$comment": "Provenance and expected digests for the local cohort. This file contains NO row data. The workbook itself is never committed and is never downloaded automatically; see data/README.md.",
+  "dataset": {
+    "name": "Rich Healthcare Group longitudinal cohort",
+    "doi": "10.5061/dryad.ft8750v",
+    "record_url": "https://doi.org/10.5061/dryad.ft8750v",
+    "dryad_record": "https://datadryad.org/dataset/doi%3A10.5061%2Fdryad.ft8750v",
+    "access_date": "2026-07-16",
+    "description": "De-identified adults free of diabetes at baseline, with an observed incident-diabetes outcome during follow-up."
+  },
+  "license": {
+    "spdx_id": "CC0-1.0",
+    "terms_url": "https://datadryad.org/terms",
+    "reuse_guide_url": "https://datadryad.org/help/guides/reuse",
+    "redistribution_permitted": true,
+    "$comment": "CC0 permits redistribution, but raw and derived row-level files stay out of Git anyway: this repository has no reason to republish a cohort it did not collect.",
+    "recommended_citation": "Chen, Ying et al. (2018). Data from: Association of body mass index and age with incident diabetes in Chinese adults: a population-based cohort study [Dataset]. Dryad. https://doi.org/10.5061/dryad.ft8750v"
+  },
+  "source_file": {
+    "expected_filename": "RC Health Care Data-20180820.xlsx",
+    "expected_path": "data/raw/RC Health Care Data-20180820.xlsx",
+    "dryad_file_id": "78961",
+    "dryad_file_url": "https://datadryad.org/api/v2/files/78961",
+    "reported_md5": "b468cc3704b11ba1bd21532451fe2856",
+    "pinned_sha256": "ffd341a1a91ac65585b9fba70847a2681f5671a6035d9cfbf92e50795d74fbf6",
+    "$comment": "reported_md5 is the digest Dryad publishes for file 78961 and is checked on every run. pinned_sha256 is null until the first verified import, which captures it here (trust on first use, after the MD5 has already matched); commit that change. Every later import must match it, and a mismatch is a refusal — never a re-pin."
+  },
+  "source_totals": {
+    "rows": 211833,
+    "events": 4174,
+    "median_followup_years": 3.1,
+    "$comment": "As published in the record. Local complete-case filtering reduces these; the dataset version stores both the source totals and the admitted counts."
+  },
+  "column_contract": {
+    "$comment": "Maps workbook columns to the internal contract, verified against the real file. An unknown or ambiguous fasting-glucose mapping is a hard failure: baseline 'FPG (mmol/L)' and the evaluator-only 'FPG of final visit(mmol/L)' must never be confused. Columns present in the workbook but absent here (id, site, gender, height, weight, ALT, AST, BUN, CCR, smoking, drinking, family history) are never read and never stored.",
+    "predictors": {
+      "age": {
+        "source_column": "Age (y)",
+        "unit": "years"
+      },
+      "bmi": {
+        "source_column": "BMI(kg/m2)",
+        "unit": "kg/m2"
+      },
+      "systolic_bp": {
+        "source_column": "SBP(mmHg)",
+        "unit": "mmHg"
+      },
+      "diastolic_bp": {
+        "source_column": "DBP(mmHg)",
+        "unit": "mmHg"
+      },
+      "baseline_fasting_plasma_glucose": {
+        "source_column": "FPG (mmol/L)",
+        "unit": "mmol/L"
+      },
+      "triglycerides": {
+        "source_column": "Triglyceride(mmol/L)",
+        "unit": "mmol/L"
+      },
+      "hdl_cholesterol": {
+        "source_column": "HDL-c(mmol/L)",
+        "unit": "mmol/L"
+      },
+      "ldl_cholesterol": {
+        "source_column": "LDL(mmol/L)",
+        "unit": "mmol/L"
+      },
+      "total_cholesterol": {
+        "source_column": "Cholesterol(mmol/L)",
+        "unit": "mmol/L"
+      }
+    },
+    "evaluator_only": {
+      "followup_fasting_plasma_glucose": {
+        "source_column": "FPG of final visit(mmol/L)",
+        "unit": "mmol/L"
+      },
+      "followup_years": {
+        "source_column": "year of followup",
+        "unit": "years"
+      }
+    },
+    "outcome": {
+      "incident_diabetes": {
+        "source_column": "censor of diabetes at followup(1, Yes; 0, No)",
+        "values": {
+          "0": "no diabetes observed",
+          "1": "incident diabetes"
+        },
+        "$comment": "Verified against the published totals: this column has 4,174 positives across 211,833 rows, matching source_totals exactly. The workbook also carries 'Diabetes diagnosed during followup（1,Yes）', which is NOT the outcome: it holds only 1,304 positives, every one of them a strict subset of this column, i.e. the diagnosed subset. Using it would drop two thirds of the events."
+      }
+    }
+  },
+  "outcome_contract": {
+    "definition": "Incident diabetes observed during follow-up.",
+    "binary": true,
+    "fpg_positive_cutoff_mmol_l": 7,
+    "rules": [
+      "The source outcome field must be binary.",
+      "Every row with follow-up FPG >= 7.00 mmol/L must be positive.",
+      "A positive below that cutoff stays valid: the published definition also includes self-report."
+    ],
+    "limitation": "The binary outcome ignores varying censoring time. The prototype makes no survival-risk or fixed-horizon claim.",
+    "$verified": "Checked on the real file: all 3,404 rows with follow-up FPG >= 7.00 mmol/L are positive (zero violations). The remaining 770 positives arrive below that cutoff, which the published definition allows because it also includes self-report."
+  },
+  "inclusion_policy": {
+    "id": "mvp_complete_case_v1",
+    "rules": [
+      "Retain only rows with a binary incident-diabetes outcome.",
+      "Retain only rows with a positive follow-up duration.",
+      "Retain only rows with finite values for every predictor in the contract."
+    ],
+    "$comment": "Exclusion counts are recorded by reason so the admitted population is reproducible."
+  },
+  "split": {
+    "seed": "diabetes-prototype-v1",
+    "calibration_fraction": 0.7,
+    "review_fraction": 0.3,
+    "stratified_by": "incident_diabetes",
+    "rules": [
+      "Calibration selects the score direction and decision threshold, and nothing else.",
+      "Review supplies the displayed metrics and row-level differences.",
+      "Both splits must contain at least one observed-positive and one observed-negative row, or the import is refused."
+    ],
+    "review_interpretation": "exploratory",
+    "$comment": "Review metrics are NOT held-out performance: a human may inspect them and then edit or regenerate a formula."
+  },
+  "identity": {
+    "$comment": "Two separate identities. Neither copies or hashes a source subject id or workbook row number.",
+    "split_key": "SHA-256 of (dataset file SHA-256, canonical normalized predictor/outcome/follow-up payload, duplicate ordinal). Internal only; never leaves the database.",
+    "row_key": "Locally generated random UUID. The only row identity an API, log, or export may expose."
+  },
+  "privacy": {
+    "stored_fields": "Numeric predictors, evaluator-only follow-up fields, and the binary outcome.",
+    "never_stored": [
+      "names",
+      "emails",
+      "addresses",
+      "site-local identifiers",
+      "free text",
+      "source subject ids",
+      "source row numbers"
+    ]
+  }
+}

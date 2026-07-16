@@ -1,0 +1,35 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+coverage/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.env
+.env.*
+!.env.example
+.envrc
+.direnv/
+artifacts/
+var/
+
+# The dataset contract is tracked; the dataset itself never is.
+data/*
+!data/README.md
+!data/source-manifest.json
+data/raw/
+*.xlsx
+*.csv
+*.db
+*.db-wal
+*.db-shm
+*.backup
+# Browser-test artifacts: page snapshots can carry row values, so they are
+# never committable even though the smoke path uses a synthetic fixture.
+test-results/
+playwright-report/
+blob-report/
+output/playwright/
+.playwright-cli/
+__pycache__/

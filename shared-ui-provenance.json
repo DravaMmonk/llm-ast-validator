@@ -1,0 +1,85 @@
+{
+  "$comment": "Contract for the shared console UI under src/shared-console. `npm run verify:shared-ui` enforces every hash and the allowlist below.",
+  "artifact": {
+    "kind": "sanitized-extraction",
+    "local_path": "src/shared-console",
+    "$comment": "A neutral, sanitized copy of a shared console kit. Origin identity is deliberately not recorded: this project does not retain it, and the copy is not traceable back to a source by design."
+  },
+  "license": {
+    "spdx_id": "MIT",
+    "license_file": "LICENSE",
+    "notice_file": null,
+    "required_attribution": null,
+    "redistribution_permitted": true,
+    "$comment": "The sole copyright holder has authorized this neutral extraction for redistribution under the repository MIT license."
+  },
+  "authorization": {
+    "basis": "sole-copyright-holder-instruction",
+    "scope": "public-redistribution-under-mit",
+    "publication_authorized": true,
+    "$comment": "The copyright holder explicitly authorized public release and redistribution of this extraction under MIT."
+  },
+  "gate_0": {
+    "status": "PASS",
+    "private_use": "PASS",
+    "public_release": "PASS",
+    "blocking_reasons": [],
+    "to_unblock_publication": []
+  },
+  "sanitization": {
+    "$comment": "The copy was audited for company, privacy, and confidential content before it entered this repository. No secrets, credentials, endpoints, customer names, or subject data were present; the only external URL is the public Google Fonts CDN. Findings were removed rather than documented: naming them here would reproduce in this repository exactly what the audit existed to remove. verify:shared-ui enforces the result with a hashed denylist.",
+    "categories_removed": [
+      "brand mark component and brand accent colour",
+      "origin identity and source-path notes",
+      "product naming in file headers and the design doc",
+      "confidential business-domain vocabulary in the stage table",
+      "product-domain vocabulary and colour tokens unrelated to this prototype",
+      "unused decorative and legacy classes tied to the source product"
+    ],
+    "renamed": [
+      {
+        "from": "brand-prefixed CSS classes",
+        "to": "ui-*",
+        "detail": "The source's brand initials were embedded in the class API across the kit, tokens, preset, and design doc."
+      }
+    ],
+    "verified_absent": [
+      "API keys, tokens, passwords, bearer credentials",
+      "internal hostnames, endpoints, or cloud storage paths",
+      "customer, client, or employee names",
+      "subject or patient data",
+      "private repository paths"
+    ]
+  },
+  "frozen_files": [
+    {
+      "path": "DESIGN.md",
+      "sha256": "f38a1b3e23a9bd82b855672ad3ae6654eb2a77b190e956f53f27006ea121a7ee"
+    },
+    {
+      "path": "src/icons.tsx",
+      "sha256": "e9e73176782cffeae44bf4e4104be2d91ee42df81c2a9e9adf461400d3c3d55a"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "d1c9d6220d339ed9e139f5c7d2c826e7af6b8186322c6cb274c5ffa706ebe9d2"
+    },
+    {
+      "path": "src/kit.tsx",
+      "sha256": "518a4bd0d0e600fa0e899178b5cfd49c4a5ee80146e6a58473b32f77069b40b4"
+    },
+    {
+      "path": "src/tokens.css",
+      "sha256": "53cf6490782fbea06fc21aa4edfa1ab39977ec202bff9a5b122b5f5fa0aa035d"
+    },
+    {
+      "path": "tailwind-preset.js",
+      "sha256": "7f2c1d54c81ed30a509c665588f719e9eaaa8159def96cadcc9c7cb21456d697"
+    }
+  ],
+  "visible_component_allowlist": {
+    "$comment": "Section 6.3 authorizes exactly three new visible components. SessionPage is page composition, not a design primitive. A fourth requires a plan revision.",
+    "authorized": ["SessionRail", "GenerationReviewPanel", "CohortEvaluationPanel"],
+    "page_composition": ["SessionPage"]
+  }
+}

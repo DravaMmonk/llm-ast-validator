@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  // `shared` is listed because the browser imports the contracts and the AST
+  // kernel from it, and a composite project must list every file it compiles.
+  "include": ["src", "shared"],
+  "exclude": [
+    // Shared tests are node-only (they pin the hash against node:crypto); the
+    // server project owns them.
+    "shared/**/*.test.ts",
+    // Untracked "<name> 2.<ext>" duplicates left in the workspace by a file
+    // copy. They are stale snapshots of modules this batch replaced and are not
+    // part of the project; excluding them keeps them from breaking the build.
+    "src/**/* 2.ts",
+    "src/**/* 2.tsx",
+    "src/**/* 2.css"
+  ]
+}

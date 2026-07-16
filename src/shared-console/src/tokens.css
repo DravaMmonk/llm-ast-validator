@@ -1,0 +1,188 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Console design tokens. Light is the default; `.dark` on <html> flips the
+ * palette. Tailwind colors (see tailwind.config) reference these vars.
+ */
+:root {
+  --bg: hsl(240 9% 95%);
+  --card: #fff;
+  --card-2: hsl(240 9% 98%);
+  --elev: #fff;
+  --fg: hsl(240 10% 13%);
+  --fg-strong: hsl(240 14% 8%);
+  --muted: hsl(240 6% 95%);
+  --muted-fg: hsl(240 4% 44%);
+  --faint: hsl(240 6% 91%);
+  --border: hsl(240 6% 87%);
+  --border-2: hsl(240 6% 92%);
+  --primary: hsl(85 28% 40%);
+  --primary-fg: #fff;
+  --primary-soft: hsl(85 30% 92%);
+  --grid: hsl(240 6% 90%);
+  --info: hsl(212 52% 46%);
+  --accent2: hsl(265 38% 54%);
+  --warn: hsl(38 88% 45%);
+  --bad: hsl(0 70% 50%);
+  --risk-low: hsl(140 42% 38%);
+  --risk-mod: hsl(44 90% 44%);
+  --risk-elev: hsl(26 88% 48%);
+  --risk-high: hsl(2 72% 50%);
+  --risk-high-soft: hsl(2 78% 95%);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: hsl(240 11% 6.5%);
+  --card: hsl(240 9% 9.5%);
+  --card-2: hsl(240 9% 12%);
+  --elev: hsl(240 9% 11%);
+  --fg: hsl(0 0% 91%);
+  --fg-strong: #fff;
+  --muted: hsl(240 7% 14%);
+  --muted-fg: hsl(240 5% 57%);
+  --faint: hsl(240 7% 16%);
+  --border: hsl(240 7% 17%);
+  --border-2: hsl(240 7% 14%);
+  --primary: hsl(85 33% 56%);
+  --primary-fg: hsl(240 12% 8%);
+  --primary-soft: hsl(85 24% 18%);
+  --grid: hsl(240 7% 16%);
+  --info: hsl(210 68% 62%);
+  --accent2: hsl(266 55% 70%);
+  --warn: hsl(40 88% 58%);
+  --bad: hsl(2 76% 62%);
+  --risk-low: hsl(140 46% 52%);
+  --risk-mod: hsl(45 90% 56%);
+  --risk-elev: hsl(28 90% 58%);
+  --risk-high: hsl(2 78% 62%);
+  --risk-high-soft: hsl(2 48% 18%);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes ui-blink {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ui-drawer-in {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes ui-drawer-in-r {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.ui-scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.ui-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.ui-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Horizontal scroll without scrollbar chrome — for slim rows (tab bars) that
+   must never clip their last item in a narrow rail. */
+.ui-scroll-none {
+  scrollbar-width: none;
+}
+.ui-scroll-none::-webkit-scrollbar {
+  display: none;
+}
+.ui-num::-webkit-inner-spin-button,
+.ui-num::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.ui-num {
+  -moz-appearance: textfield;
+}
+::selection {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+/* One keyboard-focus treatment everywhere (mouse focus stays ringless). */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+/* Mobile mode (kit.MOBILE_MQ — narrow AND coarse-pointer, so a zoomed
+   desktop window never triggers it): touch niceties. 16px form-control text
+   stops iOS Safari's focus auto-zoom; manipulation kills the 300ms
+   double-tap delay on the console's dense controls. */
+@media (max-width: 480px), ((max-width: 767px) and (pointer: coarse)) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  button,
+  a,
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+  }
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+/* Respect the OS reduced-motion preference: collapse decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .ui-mono {
+    font-family: "JetBrains Mono", monospace;
+  }
+}
