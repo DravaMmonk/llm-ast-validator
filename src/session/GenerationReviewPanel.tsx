@@ -135,7 +135,7 @@ export function GenerationReviewPanel({
         </div>
         {!health.isLoading && !generatorConfigured && (
           <p className="m-0 text-body text-warn">
-            No generator configured. Configure it in the API server environment.
+            No generator configured — AI generation is off. Add OPENAI_API_KEY to the local API's .env file and restart it with make up. Every other module works without it.
           </p>
         )}
         {generate.error && (

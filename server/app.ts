@@ -16,6 +16,7 @@ import {
   createVersionEvaluationRoutes,
 } from "./routes/evaluations";
 import { createSessionTurnRoutes, createTurnDetailRoutes } from "./routes/sessionTurns";
+import { createWorkbenchRoutes } from "./routes/workbench";
 
 /** The local frontend is the only browser origin this prototype answers. */
 export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = [
@@ -61,6 +62,7 @@ export function createApp({
   app.route("/api/dataset-versions", createDatasetRoutes(database));
   app.route("/api/sessions", createEvaluationRunRoutes({ database, runner }));
   app.route("/api/evaluation-runs", createEvaluationDetailRoutes(database));
+  app.route("/api/workbench", createWorkbenchRoutes(database));
 
   app.notFound((context) => {
     const body: ApiErrorResponse = {

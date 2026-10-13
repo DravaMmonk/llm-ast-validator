@@ -28,7 +28,7 @@ test("the closed loop survives a refresh and a restart", async ({ page }) => {
   });
 
   // 2. Create a new session from the session rail.
-  await page.goto("/");
+  await page.goto("/sessions");
   await page.getByRole("button", { name: "New session" }).first().click();
   await expect(page.getByLabel("Session title")).toBeVisible();
   const sessionUrl = page.url();
@@ -106,7 +106,7 @@ test("the closed loop survives a refresh and a restart", async ({ page }) => {
 });
 
 test("an unsaved draft cannot be evaluated", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/sessions");
   await page.getByRole("button", { name: "New session" }).first().click();
   await page.getByLabel("Natural-language requirement").fill("Score risk from baseline glucose");
   await page.getByRole("button", { name: "Generate candidates" }).click();
@@ -126,7 +126,7 @@ test("an unsaved draft cannot be evaluated", async ({ page }) => {
 });
 
 test("a blocked candidate never reaches the canvas", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/sessions");
   await page.getByRole("button", { name: "New session" }).first().click();
   await page.getByLabel("Natural-language requirement").fill("Score risk using a glucose column in mg/dL");
   await page.getByLabel("Candidate count").selectOption("3");

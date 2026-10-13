@@ -12,6 +12,7 @@
 import { useEffect, useRef } from "react";
 import * as Blockly from "blockly/core";
 import "blockly/blocks";
+import * as En from "blockly/msg/en";
 
 import type { AstDocument } from "../../shared/ast/core";
 import { type BlockState, blockDefinitions, documentToBlock } from "./diabetesBlocklyAdapter";
@@ -59,6 +60,8 @@ let blocksRegistered = false;
 /** Registers one Blockly block per registry entry, exactly once per page. */
 function ensureBlocksRegistered(): void {
   if (blocksRegistered) return;
+  // UI strings for the context menu; blockly/core ships without them.
+  Blockly.setLocale(En as unknown as Record<string, string>);
   for (const definition of blockDefinitions()) {
     if (Blockly.Blocks[definition.type]) continue;
     Blockly.Blocks[definition.type] = {

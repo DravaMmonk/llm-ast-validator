@@ -6,7 +6,7 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
 
 import { openDatabase } from "../server/db/connection";
@@ -16,6 +16,8 @@ import { SMOKE_ROW } from "../shared/ast/registry";
 
 export function seedSyntheticCohort(databasePath: string, rowCount = 200): string {
   mkdirSync(dirname(databasePath), { recursive: true });
+  // Every browser run starts from an empty database so results never depend on a previous run.
+  for (const suffix of ["", "-wal", "-shm"]) rmSync(`${databasePath}${suffix}`, { force: true });
   const database = openDatabase(databasePath);
   migrate(database);
 

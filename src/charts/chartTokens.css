@@ -1,0 +1,71 @@
+/*
+ * Chart color tokens — the ONLY place in src/charts where color literals live.
+ *
+ * Categorical (--chart-1 … --chart-8): identity, assigned in fixed order.
+ * Hues/steps are the dataviz reference palette, validated with the dataviz
+ * skill's validate_palette.js against this console's card surfaces:
+ *   light (#fff):      adjacent CVD ΔE ≥ 9.1, normal-vision ΔE ≥ 19.6
+ *   dark  (--card ≈ #16161a): adjacent CVD ΔE ≥ 8.4, normal-vision ΔE ≥ 19.3
+ * All-pairs forms (scatter) validate for the FIRST THREE slots only; past three
+ * groups fold to "Other" or facet. In light mode slots 3/4/5 sit below 3:1 vs
+ * the card, so charts using them must keep a legend + tooltip/table relief.
+ *
+ * Sequential (--chart-seq-1 … 7): one hue (blue), light → dark.
+ * Diverging (--chart-div-*): blue ← neutral gray → red, for signed values
+ * (e.g. correlation −1 … +1). Cells interpolate in OKLab via color-mix().
+ * --chart-div-ink-* are text colors over weak / strong diverging fills.
+ */
+:root {
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --chart-7: #4a3aa7;
+  --chart-8: #e34948;
+
+  --chart-seq-1: #cde2fb;
+  --chart-seq-2: #9ec5f4;
+  --chart-seq-3: #6da7ec;
+  --chart-seq-4: #3987e5;
+  --chart-seq-5: #256abf;
+  --chart-seq-6: #184f95;
+  --chart-seq-7: #0d366b;
+
+  --chart-div-neg: #1c5cab;
+  --chart-div-mid: #f0efec;
+  --chart-div-pos: #b42f2e;
+  --chart-div-ink-weak: hsl(240 14% 8%);
+  --chart-div-ink-strong: #ffffff;
+
+  --chart-tooltip-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+}
+
+.dark {
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-7: #9085e9;
+  --chart-8: #e66767;
+
+  /* Sequential flips its anchor on dark: low values recede into the surface. */
+  --chart-seq-1: #104281;
+  --chart-seq-2: #184f95;
+  --chart-seq-3: #1c5cab;
+  --chart-seq-4: #2a78d6;
+  --chart-seq-5: #5598e7;
+  --chart-seq-6: #86b6ef;
+  --chart-seq-7: #b7d3f6;
+
+  --chart-div-neg: #256abf;
+  --chart-div-mid: #383835;
+  --chart-div-pos: #b8403f;
+  --chart-div-ink-weak: #f2f2f2;
+  --chart-div-ink-strong: #f2f2f2;
+
+  --chart-tooltip-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
