@@ -17,6 +17,9 @@ const app = createApp({
   generator: new FixtureGenerator(),
   runner: new InProcessRunner(),
   allowedOrigins,
+  // Browser tests never download real data: every public-catalogue source
+  // "returns" a synthetic file, which the digest check must refuse.
+  workbench: { fetchSource: async () => new TextEncoder().encode("synthetic,stand-in\n1,2\n") },
 });
 
 const server = serve({ fetch: app.fetch, hostname: "127.0.0.1", port }, (info) => {

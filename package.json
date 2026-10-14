@@ -13,6 +13,7 @@
     "verify:shared-ui": "tsx scripts/verify-shared-ui.ts",
     "prepare:cohort": "tsx scripts/prepare-cohort.ts",
     "audit:release": "tsx scripts/audit-public-release.ts",
+    "verify:public-datasets": "tsx scripts/verify-public-datasets.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {

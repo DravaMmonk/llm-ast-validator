@@ -99,7 +99,7 @@ export interface DerivedColumn {
   description: string;
 }
 
-export type DatasetSource = "upload" | "sample";
+export type DatasetSource = "upload" | "sample" | "public";
 export type DatasetStatus = "active" | "archived";
 
 export interface DatasetSummary {
@@ -567,6 +567,8 @@ export interface Frame {
   contentHash: string;
   rowCount: number;
   columns: FrameColumn[];
+  /** How to cite the data, for datasets from the public catalogue. */
+  citation?: string;
 }
 
 /**

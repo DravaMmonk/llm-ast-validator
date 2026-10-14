@@ -67,13 +67,14 @@ export function findDatasetSummary(database: AppDatabase, id: string): DatasetSu
   return database.prepare<[string], DatasetRow>(`SELECT ${SUMMARY_COLUMNS} FROM wb_datasets WHERE id = ?`).get(id);
 }
 
-export function findActiveSample(database: AppDatabase, sampleKey: string): DatasetSummary | undefined {
+/** The active copy of a built-in sample or catalogue dataset, if one was already added. */
+export function findActiveByKey(database: AppDatabase, source: "sample" | "public", key: string): DatasetSummary | undefined {
   return database
-    .prepare<[string], DatasetRow>(
-      `SELECT ${SUMMARY_COLUMNS} FROM wb_datasets WHERE sample_key = ? AND status = 'active'
+    .prepare<[string, string], DatasetRow>(
+      `SELECT ${SUMMARY_COLUMNS} FROM wb_datasets WHERE source = ? AND sample_key = ? AND status = 'active'
        ORDER BY created_at DESC LIMIT 1`,
     )
-    .get(sampleKey);
+    .get(source, key);
 }
 
 export function findDatasetDetail(database: AppDatabase, id: string): DatasetDetail | undefined {

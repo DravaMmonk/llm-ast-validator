@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Download, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { Archive, ArchiveRestore, Download, ExternalLink, Pencil, Plus, ShieldCheck, Trash2, Upload } from "lucide-react";
 
 import {
   COLUMN_KINDS,
@@ -25,6 +25,7 @@ import {
   convertColumnKind,
 } from "../../../shared/workbench/dataset";
 import { printExpr } from "../../../shared/workbench/exprText";
+import { type PublicDataset, findPublicDataset } from "../../../shared/workbench/publicDatasets";
 import {
   Chip,
   ConfirmDialog,
@@ -56,7 +57,7 @@ import { errorMessage, wbApi } from "../../workstation/api";
 import { queryKeys, useActiveDataset, useDatasetDetail, useFrame } from "../../workstation/data";
 import { downloadText, frameToCsv, safeFilename } from "../../workstation/exportCsv";
 import { profileColumn, type ColumnProfile } from "../../workstation/profile";
-import { Callout, Field, KindBadge, Section, StatTile, fmt, plural } from "../../workstation/ui";
+import { Callout, CopyButton, Field, KindBadge, Section, StatTile, fmt, plural } from "../../workstation/ui";
 import { DataGrid } from "./DataGrid";
 import { DerivedDialog } from "./DerivedDialog";
 import { ImportDialog } from "./ImportDialog";
@@ -115,7 +116,7 @@ export default function DataStudio() {
         {!isLoading && filtered.length === 0 && (
           <EmptyState
             title={rail === "active" ? "No datasets" : "Nothing archived"}
-            hint={rail === "active" ? "Import a CSV or load a synthetic sample from the Overview." : undefined}
+            hint={rail === "active" ? "Import a CSV, or add a synthetic sample or a public dataset from the Overview." : undefined}
             action={
               rail === "active" ? (
                 <button type="button" className={primaryBtn} onClick={() => setImporting(true)}>
@@ -234,12 +235,14 @@ function DatasetWorkspace({ datasetId, summary }: { datasetId: string; summary: 
 
   const column = frame.columns.find((entry) => entry.name === selected) ?? null;
   const totalCells = frame.rowCount * frame.columns.length;
+  const publicEntry = summary?.source === "public" && summary.sample_key ? findPublicDataset(summary.sample_key) : undefined;
 
   return (
     <>
       <Pane>
         <PaneHeader label={frame.name}>
           {summary?.source === "sample" && <Chip label="synthetic" color="var(--warn)" />}
+          {summary?.source === "public" && <Chip label="public data" color="var(--info)" />}
           <span className="ui-mono text-fine text-muted-fg">hash {frame.contentHash.slice(0, 10)}</span>
           <button
             type="button"
@@ -273,6 +276,7 @@ function DatasetWorkspace({ datasetId, summary }: { datasetId: string; summary: 
             }
           />
         </div>
+        {publicEntry && <PublicSourceBar entry={publicEntry} />}
         <TabBar
           value={view}
           onChange={setView}
@@ -763,6 +767,28 @@ const KIND_HELP: Record<ColumnKind, string> = {
   categorical: "Text categories. Convert to numeric to read them as numbers, or to yes/no for yes/no, y/n or true/false spellings.",
   boolean: "Yes/no values. Convert to numeric for 1/0, or to categorical for the words “yes” and “no”.",
 };
+
+/** Where a catalogue dataset came from, its licence, and how to cite it. */
+function PublicSourceBar({ entry }: { entry: PublicDataset }) {
+  return (
+    <div className="flex flex-none flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-border-2 px-[11px] py-2 text-cap text-muted-fg">
+      <ShieldCheck size={13} className="flex-none" style={{ color: "var(--risk-low)" }} aria-hidden />
+      <span>
+        Verified copy from {entry.source.publisher.split(" (")[0].split(",")[0]} · SHA-256 {entry.source.sha256.slice(0, 10)}…
+      </span>
+      <a href={entry.license.url} target="_blank" rel="noreferrer noopener" className="text-muted-fg underline" title={entry.license.name}>
+        {entry.license.spdx}
+      </a>
+      <a href={entry.source.page} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-0.5 text-muted-fg underline">
+        Documentation <ExternalLink size={10} aria-hidden />
+      </a>
+      <span className="min-w-0 flex-1 truncate" title={entry.citation}>
+        {entry.design} · {entry.domain}
+      </span>
+      <CopyButton text={entry.citation} label="Copy citation" />
+    </div>
+  );
+}
 
 function MiniHistogram({ bins }: { bins: { x0: number; x1: number; count: number }[] }) {
   if (bins.length === 0) return null;

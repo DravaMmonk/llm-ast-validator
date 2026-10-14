@@ -44,10 +44,13 @@ import {
   type PatchDatasetResponse,
   type SampleListResponse,
 } from "../../shared/workbench/contracts";
+import { PUBLIC_DATASETS, type PublicDataset } from "../../shared/workbench/publicDatasets";
+import { PublicContractError, publicDatasetDescription } from "../../shared/workbench/publicImport";
 import { SAMPLE_DATASETS, findSample, generateSample } from "../../shared/workbench/samples";
+import { PublicSourceError, type SourceFetcher, downloadPublicDataset, fetchSource } from "../publicSource";
 import type { AppDatabase } from "../db/connection";
 import {
-  findActiveSample,
+  findActiveByKey,
   findDatasetDetail,
   findDatasetSummary,
   findDocument,
@@ -101,8 +104,19 @@ function readDescription(value: unknown): string {
   return value.trim();
 }
 
-export function createWorkbenchRoutes(database: AppDatabase): Hono {
+export interface WorkbenchRouteOptions {
+  /** Downloads catalogue sources; tests substitute a stub. */
+  fetchSource?: SourceFetcher;
+  /** The public catalogue; tests substitute synthetic entries. */
+  publicCatalog?: readonly PublicDataset[];
+}
+
+export function createWorkbenchRoutes(database: AppDatabase, options: WorkbenchRouteOptions = {}): Hono {
   const routes = new Hono();
+  const fetcher = options.fetchSource ?? fetchSource;
+  const catalog = options.publicCatalog ?? PUBLIC_DATASETS;
+  // One download per catalogue key at a time, so a double click cannot add it twice.
+  const publicImports = new Map<string, Promise<{ status: 200 | 201; body: CreateDatasetResponse }>>();
 
   /* ---------------- samples ---------------- */
 
@@ -150,7 +164,7 @@ export function createWorkbenchRoutes(database: AppDatabase): Hono {
     const sample = typeof key === "string" ? findSample(key) : undefined;
     if (!sample) throw new ApiFailure(404, "SAMPLE_NOT_FOUND", `There is no built-in sample “${String(key)}”.`);
     // A sample is reproducible, so a second request reuses the active copy.
-    const existing = findActiveSample(database, sample.key);
+    const existing = findActiveByKey(database, "sample", sample.key);
     if (existing) {
       const response: CreateDatasetResponse = { dataset: existing, warnings: [] };
       return context.json(response, 200);
@@ -170,6 +184,49 @@ export function createWorkbenchRoutes(database: AppDatabase): Hono {
     const response: CreateDatasetResponse = { dataset, warnings: [] };
     return context.json(response, 201);
   });
+
+  routes.post("/datasets/public", async (context) => {
+    const body = await readJsonObject(context);
+    rejectUnknownFields(body, ["key"]);
+    const entry = typeof body.key === "string" ? catalog.find((candidate) => candidate.key === body.key) : undefined;
+    if (!entry) throw new ApiFailure(404, "PUBLIC_DATASET_NOT_FOUND", `There is no public dataset “${String(body.key)}” in the catalogue.`);
+
+    let pending = publicImports.get(entry.key);
+    if (!pending) {
+      pending = importPublic(entry).finally(() => publicImports.delete(entry.key));
+      publicImports.set(entry.key, pending);
+    }
+    const result = await pending;
+    return context.json(result.body, result.status);
+  });
+
+  async function importPublic(entry: PublicDataset): Promise<{ status: 200 | 201; body: CreateDatasetResponse }> {
+    // Added before and still active: reuse it rather than download again.
+    const existing = findActiveByKey(database, "public", entry.key);
+    if (existing) return { status: 200, body: { dataset: existing, warnings: [] } };
+    let downloaded: Awaited<ReturnType<typeof downloadPublicDataset>>;
+    try {
+      downloaded = await downloadPublicDataset(entry, fetcher);
+    } catch (error) {
+      if (error instanceof PublicSourceError) throw new ApiFailure(502, error.code, error.message);
+      if (error instanceof PublicContractError) {
+        throw new ApiFailure(502, "PUBLIC_CONTRACT_FAILED", `${error.message} The source format has changed, so nothing was imported.`);
+      }
+      throw error;
+    }
+    const dataset = insertDataset(database, {
+      id: randomUUID(),
+      name: entry.name,
+      description: publicDatasetDescription(entry),
+      source: "public",
+      sample_key: entry.key,
+      row_count: downloaded.rowCount,
+      content_hash: hashColumns(downloaded.columns),
+      columns: downloaded.columns,
+      now: new Date().toISOString(),
+    });
+    return { status: 201, body: { dataset, warnings: [] } };
+  }
 
   routes.get("/datasets/:id", (context) => {
     const id = context.req.param("id");

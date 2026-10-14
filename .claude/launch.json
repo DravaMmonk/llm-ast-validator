@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "ALLOWED_ORIGINS=http://localhost:5180,http://127.0.0.1:5180 RESEARCH_DB_PATH=var/dev.db npx tsx watch server/index.ts"],
+      "port": 8787,
+      "autoPort": false
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5180", "--strictPort"],
+      "port": 5180,
+      "autoPort": false
+    }
+  ]
+}

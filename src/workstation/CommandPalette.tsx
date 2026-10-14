@@ -7,13 +7,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calculator as CalculatorIcon, Compass, CornerDownLeft, Database, FileText, Keyboard, ListFilter, Moon, Puzzle, Sigma, Sun } from "lucide-react";
+import { Calculator as CalculatorIcon, Compass, CornerDownLeft, Database, FileText, Globe, Keyboard, ListFilter, Moon, Puzzle, Sigma, Sun } from "lucide-react";
 
 import { CALCULATORS } from "../../shared/workbench/calculators";
+import { PUBLIC_DATASETS } from "../../shared/workbench/publicDatasets";
 import type { LucideIcon } from "lucide-react";
 
-import { Kbd, Modal, inputCls } from "../shared-console/src";
-import { wbApi } from "./api";
+import { Kbd, Modal, inputCls, toast } from "../shared-console/src";
+import { errorMessage, wbApi } from "./api";
 import { queryKeys, useActiveDataset, useDocuments } from "./data";
 import { MODULES } from "./modules";
 import { useGuard } from "./guard";
@@ -130,6 +131,29 @@ export function CommandPalette({ onClose, onShowShortcuts }: { onClose: () => vo
         run: () => {
           setDatasetId(dataset.id);
           onClose();
+        },
+      });
+    }
+    for (const entry of PUBLIC_DATASETS) {
+      if (datasets.some((dataset) => dataset.source === "public" && dataset.sample_key === entry.key)) continue;
+      list.push({
+        id: `public:${entry.key}`,
+        label: `Add public dataset: ${entry.name}`,
+        hint: `${entry.domain} · ${entry.rows.toLocaleString("en-US")} rows · ${entry.license.spdx}`,
+        section: "Public datasets",
+        icon: Globe,
+        keywords: `${entry.domain} ${entry.design} ${entry.topics.join(" ")} ${entry.summary} download import`,
+        // `execute` closes the palette and runs this through the unsaved-changes guard.
+        run: () => {
+          toast(`Downloading · ${entry.name}…`);
+          void wbApi.createPublicDataset(entry.key).then(
+            async ({ dataset }) => {
+              await queryClient.invalidateQueries({ queryKey: queryKeys.datasets() });
+              setDatasetId(dataset.id);
+              toast(`Added · ${dataset.name} · ${dataset.row_count.toLocaleString("en-US")} rows, verified`);
+            },
+            (error) => toast(`Could not add ${entry.name}: ${errorMessage(error)}`),
+          );
         },
       });
     }

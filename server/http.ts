@@ -10,7 +10,7 @@ import { REQUEST_BODY_MAX_BYTES } from "../shared/contracts";
  */
 export class ApiFailure extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409 | 413 | 422 | 503,
+    readonly status: 400 | 403 | 404 | 409 | 413 | 422 | 502 | 503,
     readonly code: string,
     message: string,
     readonly details?: unknown,

@@ -56,6 +56,26 @@ imports, so the browser previews with exactly the code the server validates with
   holding formulas are validated by the kernel; free-form payloads are bounded in
   size and depth. Nothing is hard-deleted.
 
+## Public datasets (`shared/workbench/publicDatasets.ts`, `publicImport.ts`, `server/publicSource.ts`)
+
+- The catalogue is metadata only: source URL (UCI or Rdatasets — the only hosts
+  the downloader accepts), pinned SHA-256 and size, licence, citation, and a
+  column contract (`from` header or `#index` → name, label, unit, role, codes).
+- `POST /api/workbench/datasets/public {key}` downloads with a 30 s timeout and
+  a size cap, refuses a digest mismatch (`PUBLIC_SOURCE_CHANGED`, 502), an
+  unreachable source (`PUBLIC_SOURCE_UNAVAILABLE`) or a format the contract does
+  not expect (`PUBLIC_CONTRACT_FAILED`), and stores the result with
+  `source = 'public'` and the key in `sample_key`. A second request reuses the
+  active copy; concurrent requests share one download.
+- `applyPublicContract` is strict: header and column count, row count, numbers,
+  and every coded value must match; codes may map a source token to missing.
+- Migration 0004 rebuilds `wb_datasets` to allow the new source. The runner
+  turns foreign keys off for migrations that declare
+  `-- migrate: foreign-keys-off` and checks `foreign_key_check` before commit.
+- `npm run verify:public-datasets` re-downloads every source and applies its
+  contract (counts only in the output). Tests and the browser suite use
+  synthetic stand-ins; real rows never enter Git, fixtures or artifacts.
+
 ## Cohort accounting (`shared/workbench/cohort.ts`)
 
 Steps apply in order to the rows still present. Include steps keep rows whose

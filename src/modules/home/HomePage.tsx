@@ -15,6 +15,7 @@ import { queryKeys, useActiveDataset, useDocuments } from "../../workstation/dat
 import { MODULES } from "../../workstation/modules";
 import { LogoMark } from "../../workstation/Shell";
 import { Callout } from "../../workstation/ui";
+import { PublicCatalog } from "./PublicCatalog";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -36,13 +37,13 @@ export function HomePage() {
   });
 
   const steps = [
-    { done: datasets.length > 0, label: "Load a dataset", hint: "A synthetic sample or your own CSV.", to: "/data" },
+    { done: datasets.length > 0, label: "Load a dataset", hint: "A synthetic sample, a public dataset, or your own CSV.", to: "/data" },
     { done: (cohorts.data?.documents.length ?? 0) > 0, label: "Snap together a cohort", hint: "Inclusion and exclusion criteria as puzzle pieces.", to: "/cohorts" },
     { done: (scores.data?.documents.length ?? 0) > 0, label: "Forge a score", hint: "Build a formula from blocks and check its AUC.", to: "/forge" },
     { done: (report.data?.documents.length ?? 0) > 0, label: "Pin a result", hint: "Run an analysis and pin it to the report.", to: "/stats" },
   ];
   const doneCount = steps.filter((step) => step.done).length;
-  const loadedKeys = new Set(datasets.map((dataset) => dataset.sample_key).filter(Boolean));
+  const loadedKeys = new Set(datasets.filter((dataset) => dataset.source === "sample").map((dataset) => dataset.sample_key));
 
   return (
     <Page>
@@ -80,6 +81,7 @@ export function HomePage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-md font-semibold text-fg-strong">{summary.name}</span>
                       {summary.source === "sample" && <Chip label="synthetic" color="var(--warn)" />}
+                      {summary.source === "public" && <Chip label="public data" color="var(--info)" />}
                     </div>
                     <div className="ui-mono mt-1 text-label text-muted-fg">
                       {summary.row_count.toLocaleString("en-US")} rows · {summary.column_count} columns
@@ -169,20 +171,22 @@ export function HomePage() {
                         className={`${loaded ? pillBtn : primaryBtn} mt-auto self-start`}
                         disabled={loadSample.isPending}
                         onClick={() => {
-                          const existing = datasets.find((dataset) => dataset.sample_key === sample.key);
+                          const existing = datasets.find((dataset) => dataset.source === "sample" && dataset.sample_key === sample.key);
                           if (existing) {
                             setDatasetId(existing.id);
                             toast(`Active dataset · ${existing.name}`);
                           } else loadSample.mutate(sample.key);
                         }}
                       >
-                        {loaded ? (datasets.find((d) => d.sample_key === sample.key)?.id === datasetId ? "Active" : "Use this dataset") : loadSample.isPending && loadSample.variables === sample.key ? "Loading…" : "Load sample"}
+                        {loaded ? (datasets.find((d) => d.source === "sample" && d.sample_key === sample.key)?.id === datasetId ? "Active" : "Use this dataset") : loadSample.isPending && loadSample.variables === sample.key ? "Loading…" : "Load sample"}
                       </button>
                     </article>
                   );
                 })}
               </div>
             </section>
+
+            <PublicCatalog />
 
             <section aria-labelledby="home-modules">
               <h3 id="home-modules" className={`${capSm} m-0 mb-2`}>

@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { evaluateCohort, maskedRows, type CohortResult } from "../../shared/workbench/cohort";
 import { type DatasetSummary, type Frame, buildFrame } from "../../shared/workbench/dataset";
+import { findPublicDataset } from "../../shared/workbench/publicDatasets";
 import type {
   CohortPayload,
   DocumentKind,
@@ -76,7 +77,12 @@ export function useFrame(datasetId: string | null): {
   refetch: () => void;
 } {
   const detail = useDatasetDetail(datasetId);
-  const frame = useMemo(() => (detail.data ? buildFrame(detail.data) : null), [detail.data]);
+  const frame = useMemo(() => {
+    if (!detail.data) return null;
+    const built = buildFrame(detail.data);
+    const entry = detail.data.source === "public" && detail.data.sample_key ? findPublicDataset(detail.data.sample_key) : undefined;
+    return entry ? { ...built, citation: entry.citation } : built;
+  }, [detail.data]);
   return { frame, isLoading: detail.isLoading, error: detail.error, refetch: () => void detail.refetch() };
 }
 
@@ -144,6 +150,25 @@ export function provenanceOf(frame: Frame, selection: RowSelection): Record<stri
     content_hash: frame.contentHash.slice(0, 12),
     rows: selection.rows.length,
     cohort: selection.cohort?.title ?? "All rows",
+    ...(frame.citation ? { data_source: frame.citation } : {}),
     generated_at: new Date().toISOString(),
   };
+}
+
+/**
+ * Adds a dataset from the public catalogue: the local API downloads it from
+ * the official source, checks the pinned SHA-256 and the column contract,
+ * and stores it. The new dataset becomes the active one.
+ */
+export function useAddPublicDataset() {
+  const queryClient = useQueryClient();
+  const { setDatasetId } = useActiveDataset();
+  return useMutation({
+    mutationFn: (key: string) => wbApi.createPublicDataset(key),
+    onSuccess: async ({ dataset }) => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.datasets() });
+      setDatasetId(dataset.id);
+      toast(`Added · ${dataset.name} · ${dataset.row_count.toLocaleString("en-US")} rows, verified`);
+    },
+  });
 }

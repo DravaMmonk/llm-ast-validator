@@ -56,6 +56,9 @@ export const wbApi = {
     request<CreateDatasetResponse>("/api/workbench/datasets", json("POST", body)),
   createSample: (sampleKey: string) =>
     request<CreateDatasetResponse>("/api/workbench/datasets/samples", json("POST", { sample_key: sampleKey })),
+  /** Downloads a catalogue dataset from its official source, verifies it, and stores it locally. */
+  createPublicDataset: (key: string) =>
+    request<CreateDatasetResponse>("/api/workbench/datasets/public", json("POST", { key })),
   patchDataset: (id: string, body: PatchDatasetRequest) =>
     request<PatchDatasetResponse>(`/api/workbench/datasets/${encodeURIComponent(id)}`, json("PATCH", body)),
 

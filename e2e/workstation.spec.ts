@@ -288,3 +288,22 @@ test("a saved study plan has its own URL", async ({ page }) => {
   await page.reload();
   await expect(page.getByLabel("Study plan title")).toHaveValue("E2E plan");
 });
+
+test("the public catalogue filters by field, shows how to cite, and refuses a source that changed", async ({ page }) => {
+  const errors = trackErrors(page);
+  await page.goto("/");
+  const catalogue = page.locator("section", { has: page.getByRole("heading", { name: "Public research datasets" }) });
+  await catalogue.getByRole("button", { name: /^Hepatology/ }).click();
+  await expect(catalogue.locator("article")).toHaveCount(2);
+  const pbc = catalogue.locator("article", { hasText: "Mayo Clinic primary biliary cholangitis trial" });
+  await pbc.getByText("Cite", { exact: true }).click();
+  await expect(pbc).toContainText("Therneau T. survival");
+  // The browser-test API serves a synthetic stand-in, so the digest check must refuse it.
+  await pbc.getByRole("button", { name: "Download and add Mayo Clinic primary biliary cholangitis trial" }).click();
+  await expect(pbc).toContainText("no longer matches the verified version");
+  await expect(pbc.getByRole("button", { name: /Download and add/ })).toHaveText("Try again");
+  // Nothing was added.
+  await page.goto("/data");
+  await expect(page.getByText("Mayo Clinic primary biliary cholangitis trial")).toHaveCount(0);
+  expect(errors.filter((message) => !message.includes("502"))).toEqual([]);
+});

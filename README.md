@@ -24,7 +24,7 @@ Everything runs on your machine: a React frontend talks only to a local API
 
 | Module | What it does |
 | --- | --- |
-| **Overview** | Active dataset, guided first steps, three synthetic sample datasets. |
+| **Overview** | Active dataset, guided first steps, three synthetic sample datasets, and a catalogue of **18 public research datasets** (below). |
 | **Data Studio** | CSV/TSV import with a live typed preview, column profiles and distributions, virtualized data grid, analysis roles (outcome, time, event, group, exposure), numeric / categorical / **yes/no** columns (yes/no, y/n and true/false spellings are recognised on import) with conversion that previews exactly what would be lost, a one-click merge for values that differ only in letter case, **derived variables stored as formulas** (always recomputed, never baked), and CSV export. |
 | **Cohort Builder** | Inclusion/exclusion criteria as stackable puzzle pieces under a ▶ start block, or added from a quick-criterion bar. A **CONSORT-style participant flow** recomputes on every snap and accounts for every removed row, including rows lost to missing data. Download the remaining rows as CSV. |
 | **Score Forge** | Assemble a risk score from blocks (or start from a calculator template). Every change re-evaluates discrimination: ROC curve, **AUC with DeLong CI**, a threshold slider with the live 2×2, and event rate by score decile. |
@@ -46,6 +46,41 @@ blocks, live LaTeX, and an editable text bar (`age >= 18 and sex == "F"`) — an
 the server re-validates everything it stores. Missing data is explicit: undefined
 arithmetic (÷0, ln 0) becomes *missing*, never `NaN`, and `and`/`or` use
 three-valued logic.
+
+## Public research datasets
+
+Real, de-identified data from published studies, one click away on the Overview
+(or ⌘K → “Add public dataset”). The repository holds **metadata only** — source
+URL, pinned SHA-256, licence, citation and a column contract with labels, units,
+analysis roles and readable codings (`shared/workbench/publicDatasets.ts`). When
+you add one, the local API downloads it from the official source, refuses it if
+the digest or the format no longer matches, and stores it only in your local
+database. Cite the source when you publish.
+
+| Dataset | Rows | Design | Good for | Source · licence |
+| --- | ---: | --- | --- | --- |
+| Heart failure clinical records | 299 | Prospective cohort | Kaplan–Meier, Cox regression, Logistic regression | [UCI](https://archive.ics.uci.edu/dataset/519/heart+failure+clinical+records) · CC-BY-4.0 |
+| Cleveland heart disease (angiography) | 303 | Diagnostic accuracy study | ROC, Logistic regression, Table 1 | [UCI](https://archive.ics.uci.edu/dataset/45/heart+disease) · CC-BY-4.0 |
+| Breast cancer Wisconsin (diagnostic) | 569 | Diagnostic accuracy study | ROC, Logistic regression, Score Forge | [UCI](https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic) · CC-BY-4.0 |
+| Early-stage diabetes symptoms (Sylhet) | 520 | Cross-sectional | Score Forge, Logistic regression, Diagnostic 2×2 | [UCI](https://archive.ics.uci.edu/dataset/529/early+stage+diabetes+risk+prediction+dataset) · CC-BY-4.0 |
+| Indian liver patient records | 583 | Case–control | ROC, Logistic regression, Compare groups | [UCI](https://archive.ics.uci.edu/dataset/225/ilpd+indian+liver+patient+dataset) · CC-BY-4.0 |
+| Breast cancer Coimbra (biomarkers) | 116 | Case–control | ROC, Logistic regression, Compare groups | [UCI](https://archive.ics.uci.edu/dataset/451/breast+cancer+coimbra) · CC-BY-4.0 |
+| Mayo Clinic primary biliary cholangitis trial | 418 | Randomised trial + cohort | Kaplan–Meier, Cox regression, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/pbc.html) · LGPL-2.0-or-later |
+| NCCTG advanced lung cancer | 228 | Prospective cohort | Kaplan–Meier, Cox regression, Correlation | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/cancer.html) · LGPL-2.0-or-later |
+| German Breast Cancer Study Group trial | 686 | Randomised trial cohort | Kaplan–Meier, Cox regression, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/gbsg.html) · LGPL-2.0-or-later |
+| Rotterdam breast cancer cohort | 2,982 | Retrospective cohort | Kaplan–Meier, Cox regression, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/rotterdam.html) · LGPL-2.0-or-later |
+| Adjuvant chemotherapy for colon cancer | 929 | Randomised trial | Kaplan–Meier, Cox regression, Compare groups | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/colon.html) · LGPL-2.0-or-later |
+| Veterans' Administration lung cancer trial | 137 | Randomised trial | Kaplan–Meier, Cox regression, Log-rank | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/veteran.html) · LGPL-2.0-or-later |
+| Monoclonal gammopathy (MGUS) natural history | 1,384 | Retrospective cohort | Kaplan–Meier, Cox regression, Compare groups | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/survival/mgus2.html) · LGPL-2.0-or-later |
+| Low infant birth weight (Baystate) | 189 | Cohort | Logistic regression, Compare groups, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/MASS/birthwt.html) · GPL-2.0-only OR GPL-3.0-only |
+| Rectal indomethacin to prevent post-ERCP pancreatitis | 602 | Randomised trial | Compare groups, Logistic regression, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/medicaldata/indo_rct.html) · MIT |
+| Licorice gargle before intubation | 235 | Randomised trial | Compare groups, Paired change, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/medicaldata/licorice_gargle.html) · MIT |
+| Streptomycin for tuberculosis (MRC 1948) | 107 | Randomised trial | Compare groups, Diagnostic 2×2, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/medicaldata/strep_tb.html) · MIT |
+| NHEFS: smoking cessation and weight gain | 1,629 | Prospective cohort | Linear regression, Logistic regression, Table 1 | [Rdatasets](https://vincentarelbundock.github.io/Rdatasets/doc/causaldata/nhefs.html) · MIT |
+
+Check every source against its pin with `npm run verify:public-datasets` (needs
+network; prints counts only). Browser tests never download real data — their API
+serves a synthetic stand-in that the digest check must refuse.
 
 ## Start
 
@@ -81,10 +116,13 @@ architecture.
   documents are archived and can be restored.
 - The browser keeps only UI preferences (theme, collapsed rail, active dataset)
   in `localStorage`.
-- The only outbound links are the PubMed / ClinicalTrials.gov searches and DOI
-  references you choose to open.
+- The only outbound requests are the public-dataset downloads you start, plus
+  the PubMed / ClinicalTrials.gov searches and references you choose to open.
 - Built-in samples are **synthetic** — generated with a fixed seed, describing no
   real person.
+- Public datasets are downloaded only when you ask, only from the catalogue's
+  sources (UCI and Rdatasets), and are verified before anything is stored. Their
+  rows never enter Git, fixtures, screenshots or test artifacts.
 
 ## Credits
 
