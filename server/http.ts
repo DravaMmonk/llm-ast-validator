@@ -10,7 +10,7 @@ import { REQUEST_BODY_MAX_BYTES } from "../shared/contracts";
  */
 export class ApiFailure extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409 | 413 | 422 | 503,
+    readonly status: 400 | 403 | 404 | 409 | 413 | 422 | 502 | 503,
     readonly code: string,
     message: string,
     readonly details?: unknown,
@@ -38,14 +38,13 @@ export function validationFailed(message: string, details?: unknown): ApiFailure
  * Reads a bounded JSON object body. The cap is enforced on the decoded bytes
  * rather than a client-supplied Content-Length header.
  */
-export async function readJsonObject(context: Context): Promise<Record<string, unknown>> {
+export async function readJsonObject(
+  context: Context,
+  maxBytes: number = REQUEST_BODY_MAX_BYTES,
+): Promise<Record<string, unknown>> {
   const text = await context.req.text();
-  if (Buffer.byteLength(text, "utf8") > REQUEST_BODY_MAX_BYTES) {
-    throw new ApiFailure(
-      413,
-      "PAYLOAD_TOO_LARGE",
-      `Request body exceeds the ${REQUEST_BODY_MAX_BYTES}-byte limit.`,
-    );
+  if (Buffer.byteLength(text, "utf8") > maxBytes) {
+    throw new ApiFailure(413, "PAYLOAD_TOO_LARGE", `Request body exceeds the ${maxBytes}-byte limit.`);
   }
   if (text.trim() === "") return {};
 

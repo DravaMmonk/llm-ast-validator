@@ -116,7 +116,7 @@ function SessionWorkspace({ sessionId }: { sessionId: string }) {
             title={missing ? "Session not found" : "Could not load this session"}
             hint={session.error instanceof Error ? session.error.message : undefined}
             action={
-              <button type="button" className={ghostBtn} onClick={() => (missing ? navigate("/") : void session.refetch())}>
+              <button type="button" className={ghostBtn} onClick={() => (missing ? navigate("/sessions") : void session.refetch())}>
                 {missing ? "Back to sessions" : "Retry"}
               </button>
             }

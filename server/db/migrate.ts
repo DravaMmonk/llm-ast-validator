@@ -7,6 +7,7 @@ import { openDatabase } from "./connection";
 
 const MIGRATIONS_DIRECTORY = fileURLToPath(new URL("./migrations/", import.meta.url));
 const FILE_PATTERN = /^(\d{4})_([a-z0-9_]+)\.sql$/;
+const FOREIGN_KEYS_OFF = /^-- migrate: foreign-keys-off$/m;
 
 export interface Migration {
   version: number;
@@ -62,11 +63,24 @@ export function migrate(database: AppDatabase): MigrationResult {
   );
 
   for (const migration of pending) {
-    const apply = database.transaction(() => {
-      database.exec(migration.sql);
-      record.run(migration.version, migration.name, new Date().toISOString());
-    });
-    apply();
+    // A table rebuild (SQLite's documented way to change a constraint) needs
+    // foreign keys off, which cannot be toggled inside a transaction. Such a
+    // migration opts in with a directive, and the result must still pass
+    // foreign_key_check before it commits.
+    const rebuild = FOREIGN_KEYS_OFF.test(migration.sql);
+    if (rebuild) database.pragma("foreign_keys = OFF");
+    try {
+      const apply = database.transaction(() => {
+        database.exec(migration.sql);
+        if (rebuild && (database.pragma("foreign_key_check") as unknown[]).length > 0) {
+          throw new Error(`Migration ${migration.version} left foreign key violations.`);
+        }
+        record.run(migration.version, migration.name, new Date().toISOString());
+      });
+      apply();
+    } finally {
+      if (rebuild) database.pragma("foreign_keys = ON");
+    }
   }
 
   const applied = pending.map((migration) => migration.version);

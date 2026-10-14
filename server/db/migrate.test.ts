@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { openDatabase } from "./connection";
-import { migrate } from "./migrate";
+import { loadMigrations, migrate } from "./migrate";
 
 let directory: string;
 let databasePath: string;
@@ -153,6 +153,52 @@ describe("migrate", () => {
         )
         .run(now, now),
     ).toThrow(/CHECK/i);
+    database.close();
+  });
+});
+
+describe("0004 public datasets", () => {
+  it("rebuilds wb_datasets without losing rows or foreign keys", () => {
+    const database = openDatabase(databasePath);
+    // Bring the database to schema 3 exactly as an existing install would be.
+    database.exec("CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)");
+    for (const migration of loadMigrations().filter((entry) => entry.version <= 3)) {
+      database.exec(migration.sql);
+      database.prepare("INSERT INTO schema_migrations VALUES (?, ?, ?)").run(migration.version, migration.name, "2026-01-01");
+    }
+    const now = "2026-01-01T00:00:00.000Z";
+    database
+      .prepare(
+        `INSERT INTO wb_datasets (id, name, source, row_count, column_count, content_hash, columns_json, status, created_at, updated_at)
+         VALUES ('d1', 'Pilot', 'upload', 1, 1, 'h', '[]', 'active', ?, ?)`,
+      )
+      .run(now, now);
+    database
+      .prepare(
+        `INSERT INTO wb_documents (id, kind, title, dataset_id, payload_json, status, created_at, updated_at)
+         VALUES ('c1', 'cohort', 'Adults', 'd1', '{}', 'active', ?, ?)`,
+      )
+      .run(now, now);
+
+    expect(migrate(database).applied).toContain(4);
+    expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
+    expect(database.prepare("SELECT name FROM wb_datasets WHERE id = 'd1'").get()).toEqual({ name: "Pilot" });
+    expect(database.prepare("SELECT dataset_id FROM wb_documents WHERE id = 'c1'").get()).toEqual({ dataset_id: "d1" });
+    database
+      .prepare(
+        `INSERT INTO wb_datasets (id, name, source, sample_key, row_count, column_count, content_hash, columns_json, status, created_at, updated_at)
+         VALUES ('d2', 'PBC', 'public', 'pbc_mayo', 1, 1, 'h', '[]', 'active', ?, ?)`,
+      )
+      .run(now, now);
+    // The documents table still points at the rebuilt datasets table.
+    expect(() =>
+      database
+        .prepare(
+          `INSERT INTO wb_documents (id, kind, title, dataset_id, payload_json, status, created_at, updated_at)
+           VALUES ('c2', 'cohort', 'Orphan', 'missing', '{}', 'active', ?, ?)`,
+        )
+        .run(now, now),
+    ).toThrow(/FOREIGN KEY/);
     database.close();
   });
 });
